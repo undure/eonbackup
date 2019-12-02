@@ -21,4 +21,4 @@ scp -i comma.pem -r root@192.168.43.1:/data/media/0/realdata/ ./
 
 The above will work- but we can do better. Take a small foot print computer with wifi (like raspberri pi) and a USB storage (those large backup disks are great) and run an ansible script to copy file from EON every 5 minutes or so. If there are lot of files available copy one file at a time - so it does not take a lot of resource. EON uses Snapdragon Neural Processing Engine - so probably wont have any problem having some IO on it. Tests on thousand mile trip shows no issue - but is not widely tested yet.
 
-  
+Stay tuned.  
