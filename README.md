@@ -25,4 +25,6 @@ The script should calculate sha256sum on eon and send it back and the once a fil
 
 Comma.ai uses the drive data to improve the openpilot, so it's important that the file is being uploaded to comma server. There are two ways to do it- either copy it back to EON if it was deleted to free disk space, or duplicate the upload logic on the backup system so it can upload when the car arrives home and it can connect to home network.
 
+Enable Tethering works for manula copying- but to make it completely automated, the backup system should work as access point when it can not connect users home network. So, EON will automatically connect to backup system when car leaves home. The backup system will disable the access point when the home network is reachable, so EON will automatically connect to home network instead of backup system.
+
 Stay tuned.  
