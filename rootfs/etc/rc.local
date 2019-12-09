@@ -1,0 +1,25 @@
+#!/bin/sh -e
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+
+_IP=$(hostname -I) || true
+if [ "$_IP" ]; then
+  printf "My IP address is %s\n" "$_IP"
+fi
+
+
+service hostapd stop
+service dnsmasq stop
+iw dev wlan0 interface add uap0 type __ap
+ip link set uap0 up
+ip addr add 192.168.42.1/24 broadcast 192.168.42.255 dev uap0
+service hostapd start
+service dnsmasq start
+
+exit 0
+
+

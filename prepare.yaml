@@ -1,0 +1,90 @@
+---
+# one way to run: ansible-playbook prepare.yaml --ask-sudo-pass
+- hosts: localhost
+  vars:
+    os_img_filename: '2019-09-26-raspbian-buster-lite.img'
+    os_archive_filename: '2019-09-26-raspbian-buster-lite.zip'
+    os_image_url: 'https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-09-30/2019-09-26-raspbian-buster-lite.zip'
+    os_img_archive_checksum: 'sha256:a50237c2f718bd8d806b96df5b9d2174ce8b789eda1f03434ed2213bbca6c6ff'
+    os_img_checksum_value: 'fef882aa980cda898421e0f71328033c02cc314ed438b5ec8f39b03e641f31b1'
+  tasks:
+  - name: Create build directory if it does not exist
+    file:
+      path: '{{playbook_dir}}/build'
+      state: directory
+      mode: '0755'
+
+  - name: Download raspbian buster image
+    get_url:
+      url: '{{os_image_url}}'
+      dest: '{{playbook_dir}}/build/{{os_archive_filename}}'
+      mode: '0440'
+      checksum: '{{os_img_archive_checksum}}'
+
+  - name: Unarchive os image file
+    unarchive:
+      src: '{{playbook_dir}}/build/{{os_archive_filename}}'
+      dest: '{{playbook_dir}}/build/'
+
+  - name: Stat for OS Image checksum    
+    stat: 
+      path: '{{playbook_dir}}/build/{{os_img_filename}}'
+      checksum_algorithm: sha256
+      get_checksum: yes
+    register: os_image_file
+
+  - name: Verify sha256sum of OS Image before execution.
+    fail:
+      msg: "OS image file is corrupted. Found: {{os_image_file.stat.checksum}}"
+    when: os_image_file.stat.checksum != '{{os_img_checksum_value}}'
+
+  - name: Create build/mnt directory if it does not exist
+    file:
+      path: '{{playbook_dir}}/build/mnt'
+      state: directory
+      mode: '0755'
+
+  - name: Create build/mnt/boot directory if it does not exist
+    file:
+      path: '{{playbook_dir}}/build/mnt/boot'
+      state: directory
+      mode: '0755'
+
+  - name: Create build/mnt/rootfs directory if it does not exist
+    file:
+      path: '{{playbook_dir}}/build/mnt/rootfs'
+      state: directory
+      mode: '0755'
+
+  - name: Mount boot partition
+    command: mount -o loop,offset=4194304 '{{playbook_dir}}/build/{{os_img_filename}}' '{{playbook_dir}}/build/mnt/boot'
+    become: yes
+
+  - name: Create an ssh file at boot partition to enable ssh
+    file:
+      path: '{{playbook_dir}}/build/mnt/boot/ssh'
+      state: touch
+    become: yes
+
+  - name: Mount rootfs partition
+    command: mount -o loop,offset=272629760 '{{playbook_dir}}/build/{{os_img_filename}}' '{{playbook_dir}}/build/mnt/rootfs'
+    become: yes
+
+  - name: Copy rootfs files
+    synchronize:
+      src: '{{playbook_dir}}/rootfs/'
+      dest: '{{playbook_dir}}/build/mnt/rootfs/'
+      recursive: yes
+    become: yes
+
+  - name: sleep for 30 seconds so disk can be unmounted
+    wait_for:
+      timeout: 30
+
+  - name: Unmount boot partition
+    command: umount '{{playbook_dir}}/build/mnt/boot'
+    become: yes
+
+  - name: Unmount rootfs partition
+    command: umount '{{playbook_dir}}/build/mnt/rootfs'
+    become: yes
