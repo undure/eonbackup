@@ -7,6 +7,8 @@
     os_image_url: 'https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-09-30/2019-09-26-raspbian-buster-lite.zip'
     os_img_archive_checksum: 'sha256:a50237c2f718bd8d806b96df5b9d2174ce8b789eda1f03434ed2213bbca6c6ff'
     os_img_checksum_value: 'fef882aa980cda898421e0f71328033c02cc314ed438b5ec8f39b03e641f31b1'
+    wifi_ssid: 'myssid'
+    wifi_psk: '2ee6f26cc554cc88e8f7751385989425dfcd2c979b4d82f0104e80a58a41f584'
   tasks:
   - name: Create build directory if it does not exist
     file:
@@ -38,6 +40,11 @@
       msg: "OS image file is corrupted. Found: {{os_image_file.stat.checksum}}"
     when: os_image_file.stat.checksum != '{{os_img_checksum_value}}'
 
+  - name: prepare wifi connection file
+    copy:
+      dest: '{{playbook_dir}}/rootfs/etc/network/interfaces.d/wlan0.conf'
+      content: "auto wlan0\niface wlan0 inet dhcp\nwpa-ssid {{wifi_ssid}}\nwpa-psk {{wifi_psk}}"
+
   - name: Create build/mnt directory if it does not exist
     file:
       path: '{{playbook_dir}}/build/mnt'
@@ -66,6 +73,10 @@
       state: touch
     become: yes
 
+  - name: Unmount boot partition
+    command: umount '{{playbook_dir}}/build/mnt/boot'
+    become: yes
+
   - name: Mount rootfs partition
     command: mount -o loop,offset=272629760 '{{playbook_dir}}/build/{{os_img_filename}}' '{{playbook_dir}}/build/mnt/rootfs'
     become: yes
@@ -81,10 +92,7 @@
     wait_for:
       timeout: 30
 
-  - name: Unmount boot partition
-    command: umount '{{playbook_dir}}/build/mnt/boot'
-    become: yes
-
   - name: Unmount rootfs partition
     command: umount '{{playbook_dir}}/build/mnt/rootfs'
     become: yes
+   
