@@ -43,7 +43,8 @@ Now you may prepare an SD card with following command (replace sdX with your dev
 dd bs=4M if=2019-09-26-raspbian-buster-lite.img of=/dev/sdX conv=fsync
 ```
 
-If you insert the SD card into a raspberri pi 3 model B, it should boot and be ready as an access point.
+If you insert the SD card into a raspberri pi 3 model B, it should boot, connect to it, install ```dnsmasq``` + ```hostapd``` and be ready as an access point after a restart.
+
 You may connect your EON to this access point.
 
 If you want the eonbackup system to connect to your home network as well you may change the rootfs/etc/network/interfaces.d/wlan0 file. You will need ssid and password which you may create using:
