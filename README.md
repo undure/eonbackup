@@ -86,9 +86,9 @@ Number  Start       End          Size         Type     File system  Flags
 
 ## The backup service application
 
-Its a C++ service / deamon application that copies files over ssh once EON connects to the access point.
+Its a service / deamon application that copies files over ssh once EON connects to the access point.
 
-Work in progress. Its the main application and its not there yet :D.
+Work in progress- but you may find an initial version that works in /svc/ folder.
 
 Stay tuned.  
 
